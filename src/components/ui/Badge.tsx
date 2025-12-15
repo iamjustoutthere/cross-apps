@@ -1,13 +1,14 @@
 import { cn } from '../../lib/utils';
-import { ReactNode } from 'react';
+import { type ReactNode, type CSSProperties } from 'react';
 
 interface BadgeProps {
   children: ReactNode;
   variant?: 'default' | 'success' | 'warning' | 'error' | 'secondary';
   className?: string;
+  style?: CSSProperties;
 }
 
-export function Badge({ children, variant = 'default', className }: BadgeProps) {
+export function Badge({ children, variant = 'default', className, style }: BadgeProps) {
   const variantClasses = {
     default: 'bg-primary/10 text-primary border-primary/20',
     success: 'bg-green-500/10 text-green-500 border-green-500/20',
@@ -23,6 +24,7 @@ export function Badge({ children, variant = 'default', className }: BadgeProps) 
         variantClasses[variant],
         className
       )}
+      style={style}
     >
       {children}
     </span>

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Button } from './ui/Button';
 import { Badge } from './ui/Badge';
@@ -12,7 +11,7 @@ interface AgentLog {
 }
 
 export function AgentInterface() {
-  const [agentLogs, setAgentLogs] = useState<AgentLog[]>([
+  const agentLogs: AgentLog[] = [
     {
       id: '1',
       timestamp: Date.now() - 60000,
@@ -31,7 +30,7 @@ export function AgentInterface() {
       type: 'info',
       message: 'Monitoring portfolio state across 4 applications',
     },
-  ]);
+  ];
 
   const examplePayload = {
     intent: 'basis_trade',
