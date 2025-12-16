@@ -3,37 +3,36 @@ import { type ReactNode, type ButtonHTMLAttributes } from 'react';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
-  variant?: 'default' | 'secondary' | 'outline' | 'ghost' | 'destructive';
-  size?: 'default' | 'sm' | 'lg' | 'icon';
+  variant?: 'primary' | 'secondary' | 'accent' | 'outline' | 'ghost';
+  size?: 'default' | 'sm' | 'icon';
   className?: string;
 }
 
 export function Button({
   children,
-  variant = 'default',
+  variant = 'primary',
   size = 'default',
   className,
   ...props
 }: ButtonProps) {
   const variantClasses = {
-    default: 'bg-primary text-primary-foreground hover:bg-primary/90',
-    secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
-    outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
-    ghost: 'hover:bg-accent hover:text-accent-foreground',
-    destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+    primary: 'bg-black text-white border-black hover:bg-gray-900 hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1',
+    secondary: 'bg-white text-black border-black hover:bg-gray-50',
+    accent: 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-black hover:shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1',
+    outline: 'bg-white text-black border-black hover:bg-gray-50',
+    ghost: 'bg-transparent text-black border-black hover:bg-gray-50',
   };
 
   const sizeClasses = {
-    default: 'h-10 px-4 py-2',
-    sm: 'h-9 rounded-md px-3',
-    lg: 'h-11 rounded-md px-8',
-    icon: 'h-10 w-10',
+    default: 'py-3 px-4',
+    sm: 'py-2 px-3',
+    icon: 'w-10 h-10 p-2',
   };
 
   return (
     <button
       className={cn(
-        'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+        'border-2 font-bold text-xs uppercase tracking-wide transition-all disabled:opacity-50 disabled:cursor-not-allowed',
         variantClasses[variant],
         sizeClasses[size],
         className

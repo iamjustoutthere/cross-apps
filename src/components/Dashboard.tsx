@@ -1,114 +1,160 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Badge } from './ui/Badge';
+import { Button } from './ui/Button';
 import {
   getTotalPortfolioValue,
   getTotalPnL,
   getAppBreakdown,
   positions,
   balances,
+  apps,
+  type Position,
+  type AppType,
 } from '../lib/mockData';
-import { formatCurrency, formatPercent } from '../lib/utils';
-import { TrendingUp, TrendingDown, Activity, Wallet, BarChart3 } from 'lucide-react';
+import { formatCurrency } from '../lib/utils';
 
 export function Dashboard() {
+  const [selectedApp, setSelectedApp] = useState<AppType | null>(null);
+  const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
+
   const totalValue = getTotalPortfolioValue();
   const totalPnL = getTotalPnL();
-  const pnlPercent = (totalPnL / totalValue) * 100;
   const appBreakdown = getAppBreakdown();
+
+  const filteredPositions = selectedApp
+    ? positions.filter((p) => p.app === selectedApp)
+    : positions;
+
+  const filteredBalances = selectedApp
+    ? balances.filter((b) => b.app === selectedApp)
+    : balances;
 
   return (
     <div className="space-y-6">
       {/* Portfolio Overview */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Portfolio Value</CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{formatCurrency(totalValue)}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Across {appBreakdown.length} applications
-            </p>
-          </CardContent>
-        </Card>
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+        <div className="border-2 border-black bg-gray-50 p-4">
+          <div className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-2">
+            TOTAL VALUE
+          </div>
+          <div className="text-2xl md:text-3xl font-bold font-mono text-black">
+            {formatCurrency(totalValue)}
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total P&L</CardTitle>
-            {totalPnL >= 0 ? (
-              <TrendingUp className="h-4 w-4 text-green-500" />
-            ) : (
-              <TrendingDown className="h-4 w-4 text-red-500" />
-            )}
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {totalPnL >= 0 ? '+' : ''}{formatCurrency(totalPnL)}
-            </div>
-            <p className={`text-xs mt-1 ${totalPnL >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {totalPnL >= 0 ? '+' : ''}{formatPercent(pnlPercent)}
-            </p>
-          </CardContent>
-        </Card>
+        <div className="border-2 border-black bg-gray-50 p-4">
+          <div className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-2">
+            P&L
+          </div>
+          <div
+            className={`text-2xl md:text-3xl font-bold font-mono ${
+              totalPnL >= 0 ? 'text-emerald-600' : 'text-red-600'
+            }`}
+          >
+            {totalPnL >= 0 ? '+' : ''}
+            {formatCurrency(totalPnL)}
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Positions</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{positions.length}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              {positions.filter(p => p.pnl > 0).length} profitable
-            </p>
-          </CardContent>
-        </Card>
+        <div className="border-2 border-black bg-gray-50 p-4">
+          <div className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-2">
+            POSITIONS
+          </div>
+          <div className="text-2xl md:text-3xl font-bold font-mono text-black">
+            {positions.length}
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Liquid Balances</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatCurrency(balances.reduce((sum, b) => sum + b.valueUsd, 0))}
-            </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Available across all apps
-            </p>
-          </CardContent>
-        </Card>
+        <div className="border-2 border-black bg-gray-50 p-4">
+          <div className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-2">
+            LIQUID
+          </div>
+          <div className="text-2xl md:text-3xl font-bold font-mono text-black">
+            {formatCurrency(balances.reduce((sum, b) => sum + b.valueUsd, 0))}
+          </div>
+        </div>
+      </div>
+
+      {/* App Filter */}
+      <div className="border-2 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+        <CardHeader>
+          <CardTitle>FILTER BY APP</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={selectedApp === null ? 'primary' : 'secondary'}
+              size="sm"
+              onClick={() => setSelectedApp(null)}
+            >
+              ALL APPS
+            </Button>
+            {apps.map((app) => (
+              <Button
+                key={app.id}
+                variant={selectedApp === app.id ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={() => setSelectedApp(app.id)}
+              >
+                {app.name}
+              </Button>
+            ))}
+          </div>
+        </CardContent>
       </div>
 
       {/* App Breakdown */}
       <Card>
         <CardHeader>
-          <CardTitle>Application Breakdown</CardTitle>
+          <CardTitle>APPLICATION BREAKDOWN</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {appBreakdown.map(({ app, totalValue: appValue, totalPnl: appPnl, positions: posCount }) => (
-              <div key={app.id} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: app.color }}
-                  />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {appBreakdown.map(({ app, totalValue: appValue, totalPnl: appPnl }) => (
+              <button
+                key={app.id}
+                onClick={() => setSelectedApp(app.id)}
+                className={`border-2 border-black p-4 text-left transition-all ${
+                  selectedApp === app.id
+                    ? 'bg-black text-white'
+                    : 'bg-white hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className="w-3 h-3 border-2 border-black"
+                      style={{ backgroundColor: app.color }}
+                    />
+                    <div className="font-bold text-sm uppercase tracking-wide">{app.name}</div>
+                  </div>
+                  <Badge className={selectedApp === app.id ? 'bg-white text-black' : ''}>
+                    {app.type}
+                  </Badge>
+                </div>
+                <div className="grid grid-cols-2 gap-3 text-xs">
                   <div>
-                    <div className="font-medium">{app.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {app.type.charAt(0).toUpperCase() + app.type.slice(1)} • {app.chain}
+                    <div className={`font-medium uppercase ${selectedApp === app.id ? 'text-white' : 'text-gray-700'}`}>
+                      VALUE
+                    </div>
+                    <div className="font-mono font-bold">{formatCurrency(appValue)}</div>
+                  </div>
+                  <div>
+                    <div className={`font-medium uppercase ${selectedApp === app.id ? 'text-white' : 'text-gray-700'}`}>
+                      P&L
+                    </div>
+                    <div
+                      className={`font-mono font-bold ${
+                        appPnl >= 0 ? 'text-emerald-600' : 'text-red-600'
+                      }`}
+                    >
+                      {appPnl >= 0 ? '+' : ''}
+                      {formatCurrency(appPnl)}
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
-                  <div className="font-medium">{formatCurrency(appValue)}</div>
-                  <div className={`text-xs ${appPnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                    {appPnl >= 0 ? '+' : ''}{formatCurrency(appPnl)} • {posCount} pos
-                  </div>
-                </div>
-              </div>
+              </button>
             ))}
           </div>
         </CardContent>
@@ -117,59 +163,95 @@ export function Dashboard() {
       {/* Positions Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Active Positions</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>
+              ACTIVE POSITIONS {selectedApp && `- ${apps.find(a => a.id === selectedApp)?.name}`}
+            </CardTitle>
+            {selectedApp && (
+              <button
+                onClick={() => setSelectedApp(null)}
+                className="text-xs font-bold uppercase tracking-wide text-white hover:underline"
+              >
+                CLEAR FILTER
+              </button>
+            )}
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-border text-sm text-muted-foreground">
-                  <th className="text-left py-3 px-4">App</th>
-                  <th className="text-left py-3 px-4">Asset</th>
-                  <th className="text-left py-3 px-4">Type</th>
-                  <th className="text-right py-3 px-4">Size</th>
-                  <th className="text-right py-3 px-4">Entry</th>
-                  <th className="text-right py-3 px-4">Current</th>
-                  <th className="text-right py-3 px-4">P&L</th>
-                  <th className="text-right py-3 px-4">%</th>
+                <tr className="border-b-2 border-black bg-gray-50">
+                  <th className="text-left py-3 px-4 text-xs font-bold uppercase tracking-wide">
+                    APP
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-bold uppercase tracking-wide">
+                    ASSET
+                  </th>
+                  <th className="text-left py-3 px-4 text-xs font-bold uppercase tracking-wide">
+                    TYPE
+                  </th>
+                  <th className="text-right py-3 px-4 text-xs font-bold uppercase tracking-wide">
+                    SIZE
+                  </th>
+                  <th className="text-right py-3 px-4 text-xs font-bold uppercase tracking-wide">
+                    P&L
+                  </th>
+                  <th className="text-right py-3 px-4 text-xs font-bold uppercase tracking-wide">
+                    %
+                  </th>
+                  <th className="text-right py-3 px-4 text-xs font-bold uppercase tracking-wide">
+                    ACTION
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {positions.map((position) => (
-                  <tr key={position.id} className="border-b border-border/50 hover:bg-accent/50 transition-colors">
+                {filteredPositions.map((position) => (
+                  <tr
+                    key={position.id}
+                    className={`border-b border-black cursor-pointer transition-all ${
+                      selectedPosition?.id === position.id
+                        ? 'bg-black text-white'
+                        : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => setSelectedPosition(position)}
+                  >
                     <td className="py-3 px-4">
-                      <Badge variant="secondary" className="font-mono text-xs">
-                        {position.app.toUpperCase()}
+                      <Badge className={selectedPosition?.id === position.id ? 'bg-white text-black' : ''}>
+                        {position.app}
                       </Badge>
                     </td>
-                    <td className="py-3 px-4 font-medium">{position.asset}</td>
+                    <td className="py-3 px-4 font-mono font-bold text-sm">{position.asset}</td>
                     <td className="py-3 px-4">
                       <Badge
-                        variant={
-                          position.type === 'long' ? 'success' :
-                          position.type === 'short' ? 'error' :
-                          position.type === 'lend' ? 'default' :
-                          'warning'
-                        }
+                        variant={position.type === 'long' || position.type === 'lend' ? 'success' : 'error'}
                       >
-                        {position.type.toUpperCase()}
-                        {position.leverage && `${position.leverage}x`}
+                        {position.type} {position.leverage && `${position.leverage}X`}
                       </Badge>
                     </td>
-                    <td className="py-3 px-4 text-right font-mono">
-                      {position.size.toLocaleString('en-US', { maximumFractionDigits: 4 })}
+                    <td className="py-3 px-4 text-right font-mono text-sm">
+                      {position.size.toFixed(4)}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono">
-                      ${position.entryPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    <td
+                      className={`py-3 px-4 text-right font-mono font-bold ${
+                        position.pnl >= 0 ? 'text-emerald-600' : 'text-red-600'
+                      }`}
+                    >
+                      {position.pnl >= 0 ? '+' : ''}
+                      {formatCurrency(position.pnl)}
                     </td>
-                    <td className="py-3 px-4 text-right font-mono">
-                      ${position.currentPrice.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    <td
+                      className={`py-3 px-4 text-right font-mono font-bold ${
+                        position.pnlPercent >= 0 ? 'text-emerald-600' : 'text-red-600'
+                      }`}
+                    >
+                      {position.pnlPercent >= 0 ? '+' : ''}
+                      {position.pnlPercent.toFixed(2)}%
                     </td>
-                    <td className={`py-3 px-4 text-right font-mono ${position.pnl >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {position.pnl >= 0 ? '+' : ''}{formatCurrency(position.pnl)}
-                    </td>
-                    <td className={`py-3 px-4 text-right font-mono ${position.pnlPercent >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-                      {position.pnlPercent >= 0 ? '+' : ''}{position.pnlPercent.toFixed(2)}%
+                    <td className="py-3 px-4 text-right">
+                      <Button size="sm" variant="secondary">
+                        DETAILS
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -178,6 +260,142 @@ export function Dashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Position Detail Modal */}
+      {selectedPosition && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white border-4 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="border-b-4 border-black bg-black px-6 py-4 sticky top-0 z-10">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold uppercase tracking-wide text-white">
+                  POSITION DETAILS
+                </h2>
+                <button
+                  onClick={() => setSelectedPosition(null)}
+                  className="text-white hover:bg-white hover:text-black border-2 border-white w-10 h-10 flex items-center justify-center font-bold text-2xl transition-all"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="border-2 border-black p-3 bg-gray-50">
+                  <div className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-1">
+                    ASSET
+                  </div>
+                  <div className="text-xl font-bold font-mono">{selectedPosition.asset}</div>
+                </div>
+                <div className="border-2 border-black p-3 bg-gray-50">
+                  <div className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-1">
+                    APP
+                  </div>
+                  <div className="text-xl font-bold uppercase">{selectedPosition.app}</div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="border-2 border-black p-3">
+                  <div className="text-xs font-medium text-gray-700 uppercase">SIZE</div>
+                  <div className="text-lg font-mono font-bold">{selectedPosition.size}</div>
+                </div>
+                <div className="border-2 border-black p-3">
+                  <div className="text-xs font-medium text-gray-700 uppercase">TYPE</div>
+                  <div className="text-lg font-bold uppercase">{selectedPosition.type}</div>
+                </div>
+                <div className="border-2 border-black p-3">
+                  <div className="text-xs font-medium text-gray-700 uppercase">ENTRY PRICE</div>
+                  <div className="text-lg font-mono font-bold">
+                    ${selectedPosition.entryPrice.toLocaleString()}
+                  </div>
+                </div>
+                <div className="border-2 border-black p-3">
+                  <div className="text-xs font-medium text-gray-700 uppercase">CURRENT PRICE</div>
+                  <div className="text-lg font-mono font-bold">
+                    ${selectedPosition.currentPrice.toLocaleString()}
+                  </div>
+                </div>
+              </div>
+
+              <div className="border-4 border-black p-4 bg-gray-50">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-1">
+                      P&L
+                    </div>
+                    <div
+                      className={`text-2xl font-mono font-bold ${
+                        selectedPosition.pnl >= 0 ? 'text-emerald-600' : 'text-red-600'
+                      }`}
+                    >
+                      {selectedPosition.pnl >= 0 ? '+' : ''}
+                      {formatCurrency(selectedPosition.pnl)}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-1">
+                      P&L %
+                    </div>
+                    <div
+                      className={`text-2xl font-mono font-bold ${
+                        selectedPosition.pnlPercent >= 0 ? 'text-emerald-600' : 'text-red-600'
+                      }`}
+                    >
+                      {selectedPosition.pnlPercent >= 0 ? '+' : ''}
+                      {selectedPosition.pnlPercent.toFixed(2)}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {selectedPosition.liquidationPrice && (
+                <div className="border-2 border-red-600 bg-red-50 p-4">
+                  <div className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-1">
+                    LIQUIDATION PRICE
+                  </div>
+                  <div className="text-xl font-mono font-bold text-red-600">
+                    ${selectedPosition.liquidationPrice.toLocaleString()}
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-3">
+                <Button variant="primary" className="flex-1">
+                  CLOSE POSITION
+                </Button>
+                <Button variant="secondary" className="flex-1">
+                  ADJUST
+                </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Balances */}
+      {filteredBalances.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>LIQUID BALANCES</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {filteredBalances.map((balance, i) => (
+                <div key={i} className="border-2 border-black p-3 bg-gray-50">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="font-bold font-mono">{balance.asset}</div>
+                    <Badge>{balance.app}</Badge>
+                  </div>
+                  <div className="text-xl font-bold font-mono">{balance.amount.toFixed(4)}</div>
+                  <div className="text-xs text-gray-700 font-medium">
+                    {formatCurrency(balance.valueUsd)}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
