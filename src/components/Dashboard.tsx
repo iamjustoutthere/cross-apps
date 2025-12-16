@@ -19,6 +19,11 @@ export function Dashboard() {
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
   const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
 
+  // Automation toggles
+  const [autoCollateralEnabled, setAutoCollateralEnabled] = useState(true);
+  const [smartRouterEnabled, setSmartRouterEnabled] = useState(true);
+  const [fundingOptimizerEnabled, setFundingOptimizerEnabled] = useState(false);
+
   const totalValue = getTotalPortfolioValue();
   const totalPnL = getTotalPnL();
   const appBreakdown = getAppBreakdown();
@@ -149,6 +154,164 @@ export function Dashboard() {
             7.2/10
           </div>
         </div>
+      </div>
+
+      {/* Automation Features */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {/* Auto-Collateral Shield */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm">🛡️ AUTO-COLLATERAL</CardTitle>
+              <button
+                onClick={() => setAutoCollateralEnabled(!autoCollateralEnabled)}
+                className={`w-12 h-6 border-2 border-black transition-all ${
+                  autoCollateralEnabled ? 'bg-emerald-600' : 'bg-gray-300'
+                }`}
+              >
+                <div
+                  className={`w-4 h-4 bg-white border-2 border-black transition-transform ${
+                    autoCollateralEnabled ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="text-xs text-gray-700">
+                Automatically adds collateral before liquidation threshold
+              </div>
+              <div className="border-2 border-black bg-emerald-50 p-3">
+                <div className="text-xs font-bold uppercase text-gray-700">PROTECTED</div>
+                <div className="text-2xl font-mono font-bold text-emerald-600">$127K</div>
+              </div>
+              {autoCollateralEnabled && (
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-gray-700">Threshold:</span>
+                    <span className="font-mono font-bold">130%</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700">Source:</span>
+                    <span className="font-mono font-bold">MORPHO</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700">Saved (YTD):</span>
+                    <span className="font-mono font-bold text-emerald-600">$27K</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Smart Order Router */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm">📊 SMART ROUTER</CardTitle>
+              <button
+                onClick={() => setSmartRouterEnabled(!smartRouterEnabled)}
+                className={`w-12 h-6 border-2 border-black transition-all ${
+                  smartRouterEnabled ? 'bg-emerald-600' : 'bg-gray-300'
+                }`}
+              >
+                <div
+                  className={`w-4 h-4 bg-white border-2 border-black transition-transform ${
+                    smartRouterEnabled ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="text-xs text-gray-700">
+                Routes orders to best execution across all venues
+              </div>
+              <div className="border-2 border-black bg-blue-50 p-3">
+                <div className="text-xs font-bold uppercase text-gray-700">SAVED (MONTH)</div>
+                <div className="text-2xl font-mono font-bold text-blue-600">$8.2K</div>
+              </div>
+              {smartRouterEnabled && (
+                <div className="text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span className="text-gray-700">Trades:</span>
+                    <span className="font-mono font-bold">342</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700">Avg Savings:</span>
+                    <span className="font-mono font-bold text-blue-600">$24/trade</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-700">Best Route:</span>
+                    <span className="font-mono font-bold text-xs">MULTI</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Funding Rate Optimizer */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm">💰 FUNDING OPT</CardTitle>
+              <button
+                onClick={() => setFundingOptimizerEnabled(!fundingOptimizerEnabled)}
+                className={`w-12 h-6 border-2 border-black transition-all ${
+                  fundingOptimizerEnabled ? 'bg-emerald-600' : 'bg-gray-300'
+                }`}
+              >
+                <div
+                  className={`w-4 h-4 bg-white border-2 border-black transition-transform ${
+                    fundingOptimizerEnabled ? 'translate-x-6' : 'translate-x-0'
+                  }`}
+                />
+              </button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="text-xs text-gray-700">
+                Auto-rotates positions to best funding rates
+              </div>
+              {fundingOptimizerEnabled ? (
+                <div className="border-2 border-black bg-purple-50 p-3">
+                  <div className="text-xs font-bold uppercase text-gray-700">EARNING (MONTH)</div>
+                  <div className="text-2xl font-mono font-bold text-purple-600">$4.5K</div>
+                </div>
+              ) : (
+                <div className="border-2 border-black bg-amber-50 p-3">
+                  <div className="text-xs font-bold uppercase text-gray-700">OPPORTUNITY</div>
+                  <div className="text-2xl font-mono font-bold text-amber-600">+$4.5K</div>
+                </div>
+              )}
+              <div className="text-xs space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-gray-700">Current:</span>
+                  <span className="font-mono font-bold">+0.01%</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-700">Best:</span>
+                  <span className="font-mono font-bold text-emerald-600">+0.15%</span>
+                </div>
+                {!fundingOptimizerEnabled && (
+                  <Button
+                    size="sm"
+                    variant="accent"
+                    className="w-full mt-2"
+                    onClick={() => setFundingOptimizerEnabled(true)}
+                  >
+                    ENABLE NOW
+                  </Button>
+                )}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Smart Opportunities */}
