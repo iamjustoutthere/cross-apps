@@ -17,6 +17,7 @@ import { formatCurrency } from '../lib/utils';
 export function Dashboard() {
   const [selectedApp, setSelectedApp] = useState<AppType | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<Position | null>(null);
+  const [selectedStrategy, setSelectedStrategy] = useState<string | null>(null);
 
   const totalValue = getTotalPortfolioValue();
   const totalPnL = getTotalPnL();
@@ -29,6 +30,80 @@ export function Dashboard() {
   const filteredBalances = selectedApp
     ? balances.filter((b) => b.app === selectedApp)
     : balances;
+
+  // Mock opportunities data
+  const opportunities = [
+    {
+      id: '1',
+      type: 'ARBITRAGE',
+      description: 'ETH price difference detected',
+      apps: ['hyperliquid', 'lighter'],
+      profit: 125.50,
+      action: 'Buy Hyperliquid @ $3,398 → Sell Lighter @ $3,405',
+    },
+    {
+      id: '2',
+      type: 'FUNDING RATE',
+      description: 'Positive funding on SOL-PERP',
+      apps: ['lighter'],
+      profit: 0.08,
+      action: 'Short SOL on Lighter to capture +0.08% funding',
+    },
+    {
+      id: '3',
+      type: 'YIELD OPTIMIZATION',
+      description: 'Better USDC yield available',
+      apps: ['morpho'],
+      profit: 45.20,
+      action: 'Move 10k USDC to Morpho for +1.8% APR boost',
+    },
+  ];
+
+  const strategies = [
+    {
+      id: 'delta-neutral',
+      name: 'DELTA NEUTRAL',
+      description: 'Long spot + Short perp to capture funding',
+      apps: ['morpho', 'hyperliquid'],
+      risk: 'LOW',
+    },
+    {
+      id: 'basis-trade',
+      name: 'BASIS TRADE',
+      description: 'Capture basis between spot and futures',
+      apps: ['lighter', 'hyperliquid'],
+      risk: 'LOW',
+    },
+    {
+      id: 'funding-arb',
+      name: 'FUNDING ARB',
+      description: 'Exploit funding rate differences',
+      apps: ['hyperliquid', 'lighter'],
+      risk: 'MEDIUM',
+    },
+    {
+      id: 'yield-rotation',
+      name: 'YIELD ROTATION',
+      description: 'Auto-rotate to highest yields',
+      apps: ['morpho', 'polymarket'],
+      risk: 'LOW',
+    },
+  ];
+
+  const alerts = [
+    {
+      id: '1',
+      type: 'WARNING',
+      message: 'ETH-PERP liquidation risk at $2,900 (-13.2%)',
+      action: 'ADD COLLATERAL',
+    },
+    {
+      id: '2',
+      type: 'INFO',
+      message: 'SOL funding rate changed to +0.12%',
+      action: 'VIEW DETAILS',
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -68,10 +143,168 @@ export function Dashboard() {
 
         <div className="border-2 border-black bg-gray-50 p-4">
           <div className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-2">
-            LIQUID
+            RISK SCORE
           </div>
-          <div className="text-2xl md:text-3xl font-bold font-mono text-black">
-            {formatCurrency(balances.reduce((sum, b) => sum + b.valueUsd, 0))}
+          <div className="text-2xl md:text-3xl font-bold font-mono text-emerald-600">
+            7.2/10
+          </div>
+        </div>
+      </div>
+
+      {/* Smart Opportunities */}
+      <Card>
+        <CardHeader>
+          <CardTitle>⚡ SMART OPPORTUNITIES</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {opportunities.map((opp) => (
+              <div
+                key={opp.id}
+                className="border-2 border-black p-4 hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all"
+              >
+                <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="warning">{opp.type}</Badge>
+                    <span className="font-bold text-sm">{opp.description}</span>
+                  </div>
+                  <div className="text-right">
+                    <div className="text-lg font-mono font-bold text-emerald-600">
+                      +{typeof opp.profit === 'number' ? formatCurrency(opp.profit) : `${opp.profit}%`}
+                    </div>
+                  </div>
+                </div>
+                <div className="text-sm text-gray-700 mb-3">{opp.action}</div>
+                <div className="flex items-center justify-between">
+                  <div className="flex gap-1">
+                    {opp.apps.map((appId) => {
+                      const app = apps.find((a) => a.id === appId);
+                      return (
+                        <Badge key={appId} style={{ borderColor: app?.color, color: app?.color }}>
+                          {app?.name}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                  <Button size="sm" variant="primary">
+                    EXECUTE
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions - One-Click Strategies */}
+      <Card>
+        <CardHeader>
+          <CardTitle>🚀 QUICK STRATEGIES</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {strategies.map((strategy) => (
+              <button
+                key={strategy.id}
+                onClick={() => setSelectedStrategy(strategy.id)}
+                className={`border-2 border-black p-4 text-left transition-all ${
+                  selectedStrategy === strategy.id
+                    ? 'bg-black text-white'
+                    : 'bg-white hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5'
+                }`}
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <div className="font-bold text-sm uppercase tracking-wide">
+                    {strategy.name}
+                  </div>
+                  <Badge
+                    variant={strategy.risk === 'LOW' ? 'success' : 'warning'}
+                    className={selectedStrategy === strategy.id ? 'bg-white text-black' : ''}
+                  >
+                    {strategy.risk}
+                  </Badge>
+                </div>
+                <div className={`text-xs mb-3 ${selectedStrategy === strategy.id ? 'text-white' : 'text-gray-700'}`}>
+                  {strategy.description}
+                </div>
+                <div className="flex gap-1 flex-wrap">
+                  {strategy.apps.map((appId) => {
+                    const app = apps.find((a) => a.id === appId);
+                    return (
+                      <Badge
+                        key={appId}
+                        className={selectedStrategy === strategy.id ? 'bg-white text-black' : ''}
+                        style={selectedStrategy !== strategy.id ? { borderColor: app?.color, color: app?.color } : {}}
+                      >
+                        {app?.name}
+                      </Badge>
+                    );
+                  })}
+                </div>
+              </button>
+            ))}
+          </div>
+          {selectedStrategy && (
+            <div className="mt-4 border-t-2 border-black pt-4">
+              <Button variant="accent" className="w-full">
+                DEPLOY STRATEGY
+              </Button>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Smart Alerts */}
+      {alerts.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>🛡️ SMART ALERTS</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {alerts.map((alert) => (
+                <div
+                  key={alert.id}
+                  className={`border-2 p-3 flex items-center justify-between ${
+                    alert.type === 'WARNING'
+                      ? 'border-red-600 bg-red-50'
+                      : 'border-black bg-white'
+                  }`}
+                >
+                  <div>
+                    <Badge variant={alert.type === 'WARNING' ? 'error' : 'default'}>
+                      {alert.type}
+                    </Badge>
+                    <span className="ml-2 text-sm font-medium">{alert.message}</span>
+                  </div>
+                  <Button size="sm" variant="secondary">
+                    {alert.action}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Emergency Actions */}
+      <div className="border-4 border-black bg-white shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-xs font-bold uppercase tracking-wide text-gray-700 mb-1">
+              EMERGENCY CONTROLS
+            </div>
+            <div className="text-sm text-gray-700">
+              Close all positions across all apps instantly
+            </div>
+          </div>
+          <div className="flex gap-3">
+            <Button variant="secondary">
+              PAUSE ALL AUTOMATION
+            </Button>
+            <Button variant="accent">
+              EMERGENCY EXIT ALL
+            </Button>
           </div>
         </div>
       </div>
