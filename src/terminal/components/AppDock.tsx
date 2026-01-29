@@ -1,18 +1,38 @@
 import { useEffect } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useTerminalStore } from '../stores/terminalStore';
+import {
+  ChevronLeft,
+  ChevronRight,
+  Target,
+  Play,
+  Shield,
+  Anchor,
+  Bell,
+  LayoutDashboard,
+} from 'lucide-react';
+import { useTerminalStore, type ViewType } from '../stores/terminalStore';
+
+const tools: { id: ViewType; label: string; icon: React.ReactNode; shortcut?: string }[] = [
+  { id: 'dashboard', label: 'DASHBOARD', icon: <LayoutDashboard size={14} />, shortcut: 'ESC' },
+  { id: 'opportunities', label: 'OPPORTUNITIES', icon: <Target size={14} />, shortcut: 'O' },
+  { id: 'strategies', label: 'STRATEGIES', icon: <Play size={14} />, shortcut: 'S' },
+  { id: 'risk', label: 'RISK', icon: <Shield size={14} />, shortcut: 'R' },
+  { id: 'whales', label: 'WHALES', icon: <Anchor size={14} />, shortcut: 'W' },
+  { id: 'alerts', label: 'ALERTS', icon: <Bell size={14} />, shortcut: 'A' },
+];
 
 export function AppDock() {
   const {
     apps,
     positions,
     activeAppId,
+    activeView,
     setActiveApp,
+    setActiveView,
     dockCollapsed,
     toggleDock,
   } = useTerminalStore();
 
-  // Keyboard shortcuts for app switching (1-9)
+  // Keyboard shortcuts for app switching (1-9) and tools (O, S, R, W, A)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       // Skip if in input field
@@ -23,6 +43,9 @@ export function AppDock() {
         return;
       }
 
+      const key = e.key.toLowerCase();
+
+      // Number shortcuts for apps
       const num = parseInt(e.key);
       if (num >= 1 && num <= 9) {
         const app = apps.find(a => a.shortcut === e.key);
@@ -33,14 +56,33 @@ export function AppDock() {
       }
 
       // ESC to go back to dashboard
-      if (e.key === 'Escape' && activeAppId) {
+      if (e.key === 'Escape') {
         setActiveApp(null);
+        setActiveView('dashboard');
+      }
+
+      // Tool shortcuts
+      if (key === 'o' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setActiveView('opportunities');
+      } else if (key === 's' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setActiveView('strategies');
+      } else if (key === 'r' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setActiveView('risk');
+      } else if (key === 'w' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setActiveView('whales');
+      } else if (key === 'a' && !e.ctrlKey && !e.metaKey) {
+        e.preventDefault();
+        setActiveView('alerts');
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [apps, activeAppId, setActiveApp]);
+  }, [apps, activeAppId, setActiveApp, setActiveView]);
 
   // Group apps by category
   const categories = {
@@ -62,6 +104,24 @@ export function AppDock() {
         >
           <ChevronRight size={16} className="text-terminal-text-muted" />
         </button>
+
+        {/* Collapsed tools */}
+        {tools.map(tool => (
+          <button
+            key={tool.id}
+            onClick={() => setActiveView(tool.id)}
+            className={`p-3 border-b border-terminal-border ${
+              activeView === tool.id && !activeAppId
+                ? 'bg-terminal-accent text-white'
+                : 'text-terminal-text-secondary hover:bg-terminal-bg-tertiary hover:text-terminal-text-primary'
+            }`}
+            title={tool.label}
+          >
+            {tool.icon}
+          </button>
+        ))}
+
+        <div className="border-b border-terminal-border my-1" />
 
         {/* Collapsed app icons */}
         {apps.map(app => (
@@ -86,11 +146,11 @@ export function AppDock() {
   }
 
   return (
-    <div className="w-48 flex flex-col border-r border-terminal-border bg-terminal-bg-secondary">
+    <div className="w-52 flex flex-col border-r border-terminal-border bg-terminal-bg-secondary">
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-terminal-border">
         <span className="text-micro text-terminal-text-muted uppercase tracking-wider">
-          APPS
+          TERMINAL
         </span>
         <button
           onClick={toggleDock}
@@ -100,22 +160,41 @@ export function AppDock() {
         </button>
       </div>
 
-      {/* Dashboard Link */}
-      <button
-        onClick={() => setActiveApp(null)}
-        className={`px-3 py-2 text-left border-b border-terminal-border ${
-          activeAppId === null
-            ? 'bg-terminal-bg-tertiary text-terminal-text-primary'
-            : 'text-terminal-text-secondary hover:bg-terminal-bg-tertiary hover:text-terminal-text-primary'
-        }`}
-      >
-        <div className="flex items-center justify-between">
-          <span className="text-caption">DASHBOARD</span>
-          <kbd className="px-1.5 py-0.5 bg-terminal-bg-primary border border-terminal-border text-micro">
-            ESC
-          </kbd>
+      {/* Tools Section */}
+      <div className="border-b border-terminal-border">
+        <div className="px-3 py-2 bg-terminal-bg-primary">
+          <span className="text-micro text-terminal-text-muted uppercase tracking-wider">
+            TOOLS
+          </span>
         </div>
-      </button>
+        {tools.map(tool => (
+          <button
+            key={tool.id}
+            onClick={() => setActiveView(tool.id)}
+            className={`w-full px-3 py-2 text-left border-b border-terminal-border ${
+              activeView === tool.id && !activeAppId
+                ? 'bg-terminal-accent text-white'
+                : 'text-terminal-text-secondary hover:bg-terminal-bg-tertiary hover:text-terminal-text-primary'
+            }`}
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {tool.icon}
+                <span className="text-caption">{tool.label}</span>
+              </div>
+              {tool.shortcut && (
+                <kbd className={`px-1.5 py-0.5 border text-micro ${
+                  activeView === tool.id && !activeAppId
+                    ? 'bg-white/20 border-white/30'
+                    : 'bg-terminal-bg-primary border-terminal-border'
+                }`}>
+                  {tool.shortcut}
+                </kbd>
+              )}
+            </div>
+          </button>
+        ))}
+      </div>
 
       {/* App Categories */}
       <div className="flex-1 overflow-y-auto">
@@ -146,7 +225,11 @@ export function AppDock() {
                     {hasPositions(app.id) && (
                       <div className="w-1.5 h-1.5 bg-terminal-positive" />
                     )}
-                    <kbd className="px-1.5 py-0.5 bg-terminal-bg-primary border border-terminal-border text-micro">
+                    <kbd className={`px-1.5 py-0.5 border text-micro ${
+                      activeAppId === app.id
+                        ? 'bg-white/20 border-white/30'
+                        : 'bg-terminal-bg-primary border-terminal-border'
+                    }`}>
                       {app.shortcut}
                     </kbd>
                   </div>

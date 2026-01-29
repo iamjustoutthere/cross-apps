@@ -3,6 +3,7 @@ import { apps, positions, portfolio, markets, transactions, type App, type Posit
 
 export type PanelType = 'trading' | 'positions' | 'markets' | 'chart' | 'orderbook';
 export type ModalType = 'command' | 'deposit' | 'withdraw' | 'help' | null;
+export type ViewType = 'dashboard' | 'opportunities' | 'strategies' | 'risk' | 'whales' | 'alerts';
 
 interface Panel {
   id: string;
@@ -15,6 +16,7 @@ interface TerminalState {
   // Navigation
   activeAppId: string | null;
   activeMarketId: string | null;
+  activeView: ViewType;
 
   // Modal state
   activeModal: ModalType;
@@ -37,6 +39,7 @@ interface TerminalState {
   // Actions
   setActiveApp: (appId: string | null) => void;
   setActiveMarket: (marketId: string | null) => void;
+  setActiveView: (view: ViewType) => void;
   openModal: (modal: ModalType) => void;
   closeModal: () => void;
   setCommandInput: (input: string) => void;
@@ -53,6 +56,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   // Initial Navigation
   activeAppId: null,
   activeMarketId: null,
+  activeView: 'dashboard',
 
   // Initial Modal State
   activeModal: null,
@@ -75,9 +79,11 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
   commandHistory: [],
 
   // Actions
-  setActiveApp: (appId) => set({ activeAppId: appId, activeMarketId: null }),
+  setActiveApp: (appId) => set({ activeAppId: appId, activeMarketId: null, activeView: 'dashboard' }),
 
   setActiveMarket: (marketId) => set({ activeMarketId: marketId }),
+
+  setActiveView: (view) => set({ activeView: view, activeAppId: null }),
 
   openModal: (modal) => set({ activeModal: modal }),
 
@@ -96,8 +102,18 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
     });
 
     // Parse command
-    if (trimmedCommand.startsWith('/positions')) {
-      set({ activeModal: null, activeAppId: null });
+    if (trimmedCommand.startsWith('/positions') || trimmedCommand.startsWith('/dashboard')) {
+      set({ activeModal: null, activeAppId: null, activeView: 'dashboard' });
+    } else if (trimmedCommand.startsWith('/opportunities') || trimmedCommand.startsWith('/arb')) {
+      set({ activeModal: null, activeAppId: null, activeView: 'opportunities' });
+    } else if (trimmedCommand.startsWith('/strategies') || trimmedCommand.startsWith('/strat')) {
+      set({ activeModal: null, activeAppId: null, activeView: 'strategies' });
+    } else if (trimmedCommand.startsWith('/risk')) {
+      set({ activeModal: null, activeAppId: null, activeView: 'risk' });
+    } else if (trimmedCommand.startsWith('/whales') || trimmedCommand.startsWith('/whale')) {
+      set({ activeModal: null, activeAppId: null, activeView: 'whales' });
+    } else if (trimmedCommand.startsWith('/alerts')) {
+      set({ activeModal: null, activeAppId: null, activeView: 'alerts' });
     } else if (trimmedCommand.startsWith('/balance')) {
       set({ activeModal: null });
     } else if (trimmedCommand.startsWith('/deposit')) {
@@ -115,7 +131,7 @@ export const useTerminalStore = create<TerminalState>((set, get) => ({
           a.name.toLowerCase().includes(appName)
         );
         if (app) {
-          set({ activeAppId: app.id, activeModal: null });
+          set({ activeAppId: app.id, activeModal: null, activeView: 'dashboard' });
         }
       }
     } else if (trimmedCommand.startsWith('/close ')) {

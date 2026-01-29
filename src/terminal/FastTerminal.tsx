@@ -7,6 +7,11 @@ import { StatusBar } from './components/StatusBar';
 import { PositionsDashboard } from './components/PositionsDashboard';
 import { DepositModal } from './components/DepositModal';
 import { HelpModal } from './components/HelpModal';
+import { OpportunitiesScanner } from './components/OpportunitiesScanner';
+import { StrategiesModule } from './components/StrategiesModule';
+import { RiskDashboard } from './components/RiskDashboard';
+import { WhaleTracker } from './components/WhaleTracker';
+import { SmartAlerts } from './components/SmartAlerts';
 import { PolymarketModule } from './modules/PolymarketModule';
 import { HyperliquidModule } from './modules/HyperliquidModule';
 import { YieldModule } from './modules/YieldModule';
@@ -97,21 +102,39 @@ function Dashboard() {
 }
 
 function MainContent() {
-  const { activeAppId } = useTerminalStore();
+  const { activeAppId, activeView } = useTerminalStore();
 
-  switch (activeAppId) {
-    case 'polymarket':
-    case 'kalshi':
-    case 'opinion':
-      return <PolymarketModule />;
-    case 'hyperliquid':
-    case 'lighter':
-    case 'pacifica':
-      return <HyperliquidModule />;
-    case 'pendle':
-      return <YieldModule appId="pendle" />;
-    case 'morpho':
-      return <YieldModule appId="morpho" />;
+  // If an app is selected, show the app module
+  if (activeAppId) {
+    switch (activeAppId) {
+      case 'polymarket':
+      case 'kalshi':
+      case 'opinion':
+        return <PolymarketModule />;
+      case 'hyperliquid':
+      case 'lighter':
+      case 'pacifica':
+        return <HyperliquidModule />;
+      case 'pendle':
+        return <YieldModule appId="pendle" />;
+      case 'morpho':
+        return <YieldModule appId="morpho" />;
+    }
+  }
+
+  // Otherwise show the active view
+  switch (activeView) {
+    case 'opportunities':
+      return <OpportunitiesScanner />;
+    case 'strategies':
+      return <StrategiesModule />;
+    case 'risk':
+      return <RiskDashboard />;
+    case 'whales':
+      return <WhaleTracker />;
+    case 'alerts':
+      return <SmartAlerts />;
+    case 'dashboard':
     default:
       return <Dashboard />;
   }
